@@ -1,19 +1,19 @@
 import mongoose, { Mongoose } from "mongoose";
 
-const MONGODB_URL = process.env.MONGODB_URL;
+const rawUri = process.env.MONGODB_URL;
 
-if (!MONGODB_URL) {
+if (!rawUri) {
   throw new Error("Please define the MONGODB_URL environment variable.");
 }
 
-// Extend global to include _mongoose cache
+const MONGODB_URL: string = rawUri; // Now guaranteed to be string
+
 interface GlobalMongoose {
   conn: Mongoose | null;
   promise: Promise<Mongoose> | null;
 }
 
 declare global {
-  // Avoid global var redeclaration
   var _mongoose: GlobalMongoose | undefined;
 }
 
@@ -26,10 +26,11 @@ async function connectDB(): Promise<Mongoose> {
   if (globalCache.conn) return globalCache.conn;
 
   if (!globalCache.promise) {
-    globalCache.promise = mongoose.connect(MONGODB_URL as string, {
+    globalCache.promise = mongoose.connect(MONGODB_URL, {
       bufferCommands: false,
-      // Add ssl: false only if using local MongoDB and SSL issues exist
-      // ssl: false,
+      ssl: true,
+      retryWrites: true,
+      serverSelectionTimeoutMS: 10000,
     });
   }
 
