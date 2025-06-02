@@ -102,7 +102,7 @@ export default function SignInPage() {
               <Input
                 id="identifier"
                 type="text"
-                placeholder="john@example.com or +1234567890"
+                placeholder="email@example.com or +1234567890"
                 value={formData.identifier}
                 onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
                 required
