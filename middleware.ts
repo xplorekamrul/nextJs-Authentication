@@ -2,7 +2,13 @@ import { type NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "./lib/utils/jwt";
 
 const protectedRoutes = ["/home", "/admin", "/editor"];
-const authRoutes = ["/signin", "/signup", "/verify-otp", "/forgot-password", "/reset-password"];
+const authRoutes = [
+  "/signin",
+  "/signup",
+  "/verify-otp",
+  "/forgot-password",
+  "/reset-password",
+];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -13,7 +19,10 @@ export function middleware(request: NextRequest) {
   const isAuthenticated = !!payload;
 
   // ✅ Redirect authenticated users away from auth routes
-  if (isAuthenticated && authRoutes.includes(pathname)) {
+  if (
+    isAuthenticated &&
+    authRoutes.some((route) => pathname.startsWith(route))
+  ) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
