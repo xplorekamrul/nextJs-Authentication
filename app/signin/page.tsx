@@ -55,7 +55,7 @@ export default function SignInPage() {
       }
     } catch (error) {
       setError("Something went wrong. Please try again.")
-      toast.error("Something went wrong. Please try again.")
+      toast.error("Something went wrong. Please try again. " + error)
     } finally {
       setLoading(false)
     }
