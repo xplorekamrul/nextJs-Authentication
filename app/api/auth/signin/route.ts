@@ -3,7 +3,7 @@ import connectDB from "@/lib/db"
 import User from "@/lib/models/User"
 import { comparePassword } from "@/lib/utils/password"
 import { generateToken } from "@/lib/utils/jwt"
-import { setAuthCookie } from "@/lib/utils/cookies"
+import { COOKIE_NAME, COOKIE_OPTIONS } from "@/lib/utils/cookies"
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,6 @@ export async function POST(request: NextRequest) {
 
     await connectDB()
 
-    // Find user by email or phone
     const user = await User.findOne({
       $or: [{ email: identifier.toLowerCase() }, { phone: identifier }],
     })
@@ -24,12 +23,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    // Check if user is verified
     if (!user.isVerified) {
       return NextResponse.json({ error: "Please verify your account first" }, { status: 401 })
     }
 
-    // Check password (skip for Google users)
     if (user.password) {
       const isValidPassword = await comparePassword(password, user.password)
       if (!isValidPassword) {
@@ -39,11 +36,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Please sign in with Google" }, { status: 401 })
     }
 
-    // Generate JWT token
     const token = generateToken(user)
-    setAuthCookie(token)
 
-    return NextResponse.json({
+    // ✅ Create response and set cookie
+    const res = NextResponse.json({
       message: "Sign in successful",
       user: {
         id: user._id,
@@ -52,6 +48,10 @@ export async function POST(request: NextRequest) {
         role: user.role,
       },
     })
+
+    res.cookies.set(COOKIE_NAME, token, COOKIE_OPTIONS)
+
+    return res
   } catch (error) {
     console.error("Sign in error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })

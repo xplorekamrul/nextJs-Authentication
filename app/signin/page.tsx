@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -11,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Eye, EyeOff } from "lucide-react"
+import { toast, Toaster } from "sonner"
 
 export default function SignInPage() {
   const [formData, setFormData] = useState({
@@ -28,6 +28,7 @@ export default function SignInPage() {
     const googleError = searchParams.get("error")
     if (googleError === "google_auth_failed") {
       setError("Google authentication failed. Please try again.")
+      toast.error("Google authentication failed. Please try again.")
     }
   })
 
@@ -46,12 +47,15 @@ export default function SignInPage() {
       const data = await response.json()
 
       if (response.ok) {
-        router.push("/home")
+        toast.success("Successfully signed in!")
+        router.push("/")
       } else {
         setError(data.error)
+        toast.error(data.error)
       }
     } catch (error) {
       setError("Something went wrong. Please try again.")
+      toast.error("Something went wrong. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -63,14 +67,19 @@ export default function SignInPage() {
       const data = await response.json()
       if (data.url) {
         window.location.href = data.url
+      } else {
+        setError("Failed to initiate Google sign in")
+        toast.error("Failed to initiate Google sign in")
       }
     } catch (error) {
       setError("Failed to initiate Google sign in")
+      toast.error("Failed to initiate Google sign in")
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster richColors position="top-right" />
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Welcome Back</CardTitle>

@@ -14,41 +14,30 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get("auth-token")?.value;
 
-  // ✅ Safe token verification
   const payload = token ? verifyToken(token) : null;
   const isAuthenticated = !!payload;
 
-  // ✅ Redirect authenticated users away from auth routes
-  if (
-    isAuthenticated &&
-    authRoutes.some((route) => pathname.startsWith(route))
-  ) {
+  if (isAuthenticated && authRoutes.some((route) => pathname.startsWith(route))) {
     return NextResponse.redirect(new URL("/home", request.url));
   }
 
-  // ✅ Protect routes that require auth
   if (protectedRoutes.some((route) => pathname.startsWith(route))) {
     if (!isAuthenticated) {
       return NextResponse.redirect(new URL("/signin", request.url));
     }
 
-    // ✅ Role-based access control
     const role = payload?.role;
-    if (
-      pathname.startsWith("/admin") &&
-      role !== "admin" &&
-      role !== "superAdmin"
-    ) {
+    if (pathname.startsWith("/admin") && !["admin", "superAdmin"].includes(role)) {
       return NextResponse.redirect(new URL("/home", request.url));
     }
 
-    if (
-      pathname.startsWith("/editor") &&
-      !["editor", "admin", "superAdmin"].includes(role)
-    ) {
+    if (pathname.startsWith("/editor") && !["editor", "admin", "superAdmin"].includes(role)) {
       return NextResponse.redirect(new URL("/home", request.url));
     }
   }
 
   return NextResponse.next();
 }
+
+// ✅ THIS IS REQUIRED!
+
